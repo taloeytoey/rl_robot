@@ -12,8 +12,6 @@ from pygame.color import THECOLORS
 
 import pymunk
 
-print(pymunk.version)
-
 from pymunk.vec2d import Vec2d
 # from pymunk.pygame_util import draw
 from pymunk.pygame_util import DrawOptions as draw
@@ -150,18 +148,18 @@ class GameState:
         # Get the current location and the readings there.
         x, y = self.car_body.position
         readings = self.get_sonar_readings(x, y, self.car_body.angle)
-        state = np.array([readings])
+        state = np.array(readings)
 
         # Set the reward.
         # Car crashed when any reading == 1
         if self.car_is_crashed(readings):
             self.crashed = True
-            reward = -500
+            reward = float(-50)
             self.recover_from_crash(driving_direction)
         else:
             # Higher readings are better, so return the sum.
             # reward = int(self.sum_readings(readings))
-            reward = -5 + int(self.sum_readings(readings) / 10)
+            reward = float(int(self.sum_readings(readings) / 10))
         self.num_steps += 1
 
         return reward, state
@@ -191,9 +189,9 @@ class GameState:
         """
         while self.crashed:
             # Go backwards.
-            self.car_body.velocity = -5 * driving_direction
+            self.car_body.velocity = -50 * driving_direction
             self.crashed = False
-            for i in range(10):
+            for i in range(5):
                 self.car_body.angle += .2  # Turn a little.
                 screen.fill((255, 0, 0))  # Red is scary!
                 # draw(screen, self.space)
@@ -230,9 +228,9 @@ class GameState:
 
 
         # Rotate them and get readings.
-        readings.append(self.get_arm_distance(arm_left1, x, y, angle, 0.75))
-        readings.append(self.get_arm_distance(arm_middle, x, y, angle, 0))
-        readings.append(self.get_arm_distance(arm_right1, x, y, angle, -0.75))
+        readings.append(float(self.get_arm_distance(arm_left1, x, y, angle, 0.75)))
+        readings.append(float(self.get_arm_distance(arm_middle, x, y, angle, 0)))
+        readings.append(float(self.get_arm_distance(arm_right1, x, y, angle, -0.75)))
 
         if show_sensors:
             pygame.display.update()

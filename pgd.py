@@ -60,8 +60,7 @@ class PolicyNetwork():
 # hyperparameters
 learning_rate = 0.005
 gamma = 0.99  # discount factor for reward
-resume = False  # resume from previous checkpoint?
-render = True  # render the graphic ?
+resume = True  # resume from previous checkpoint?
 max_episode_number = 1000  # how many episode we want to run ?
 model_path = "_models/reinforce/model.ckpt"  # path for saving the model
 
@@ -101,8 +100,81 @@ if __name__ == '__main__':
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
 
-
+    if resume:
+        saver.restore(sess, model_path)
 
     # create a new game instance
     env = carmunk.GameState()
+    done = False
+       
+    # get initial state by doing nothing and getting the state
+    _, observation = env.frame_step(2)
+
+    while episode_number < max_episode_number:
+
+        current_state = observation
+        #print (current_state)
+
+        # forward the policy network and sample an action from the returned probability
+        action_prob = policy_network.predict(current_state[np.newaxis, :], sess)
+        action = np.random.choice(a=3, p=action_prob.ravel())
+
+        # record various intermediates
+        action_list.append(action)
+        state_list.append(current_state)  # observation
+
+
+        # step the environment and get new measurements
+        reward, observation = env.frame_step(action)
+        reward_sum += reward
+
+        reward_list.append(reward)  # record reward (has to be done after we call step() to get reward for previous action)
+
+        if reward == -50:
+            done = True
+        else:
+            done = False
+
+
+        if done:  # an episode finished
+            episode_number += 1
+
+            # stack together all inputs, action and rewards for this episode
+            state_batch = np.vstack(state_list)
+            action_batch = np.array(action_list)
+            reward_batch = np.array(reward_list)
+
+            state_list, action_list, reward_list = [], [], []  # reset array memory
+
+
+            # compute the discounted reward backwards through time
+            discounted_epr = discount_rewards(reward_batch)
+            # standardize the rewards to be unit normal (helps control the gradient estimator variance)
+            discounted_epr -= np.mean(discounted_epr)
+            discounted_epr /= np.std(discounted_epr)
+
+
+            # update model variables with data obtained from this episode
+            policy_network.update(state_batch, discounted_epr, action_batch, sess)
+
+            # record running_reward to get overview of the improvement so far
+            running_reward = reward_sum if running_reward is None else running_reward * 0.99 + reward_sum * 0.01
+            
+           
+            print('ep %d: game finished, reward: %.2f, running_reward: %.2f' % (
+                episode_number, reward_sum, running_reward))
+
+            # reset reward_sum
+            reward_sum = 0
+
+            _, observation = env.frame_step(2)
+
+            # save the model every 30 episodes
+            if episode_number % 30 == 0: saver.save(sess, model_path)
+
+
+
+
+
+
 
