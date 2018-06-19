@@ -124,8 +124,8 @@ class GameState:
             self.car_body.angle += .5
 
         # Move obstacles.
-        if self.num_steps % 100 == 0:
-            self.move_obstacles()
+        #if self.num_steps % 100 == 0:
+        #    self.move_obstacles()
 
         # Move cat.
         #if self.num_steps % 5 == 0:
@@ -296,4 +296,5 @@ class GameState:
 if __name__ == "__main__":
     game_state = GameState()
     while True:
-        game_state.frame_step((random.randint(0, 2)))
+        #game_state.frame_step((random.randint(0, 2)))
+        game_state.frame_step(1)
