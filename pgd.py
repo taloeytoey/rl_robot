@@ -60,7 +60,7 @@ class PolicyNetwork():
 # hyperparameters
 learning_rate = 0.005
 gamma = 0.99  # discount factor for reward
-resume = True  # resume from previous checkpoint?
+resume = False  # resume from previous checkpoint?
 max_episode_number = 1000  # how many episode we want to run ?
 model_path = "_models/reinforce/model.ckpt"  # path for saving the model
 
@@ -86,6 +86,11 @@ def discount_rewards(r):
 
 
 if __name__ == '__main__':
+
+    fhand = open('log/episode_reward_log.txt', 'w')
+    fhand.write('EPISODE\tTIME_STEPS_TAKEN\tTOTAL_REWARD')
+    fhand.write('\n')
+    fhand.close()
 
     state_list, action_list, reward_list = [], [], []
     running_reward = None
@@ -163,6 +168,12 @@ if __name__ == '__main__':
            
             print('ep %d: game finished, reward: %.2f, running_reward: %.2f' % (
                 episode_number, reward_sum, running_reward))
+
+            # Save episode information
+            fhand = open('log/episode_reward_log.txt', 'a')
+            fhand.write(str(episode_number) + '\t' + str(reward_sum) + '\t' + str(running_reward))
+            fhand.write('\n')
+            fhand.close()
 
             # reset reward_sum
             reward_sum = 0
